@@ -1,0 +1,14 @@
+description: $description
+version: '${version}'
+
+api-version: '26.2'
+load: STARTUP
+
+main: top.neila.slimevanilla.Slimevanilla
+name: Slimevanilla
+author: Neila
+
+Slimefun:
+  load: AFTER # Defaults to OMIT
+  required: true # Defaults to true
+  join-classpath: true # Defaults to true
