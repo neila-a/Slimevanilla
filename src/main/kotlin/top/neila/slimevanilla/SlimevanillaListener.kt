@@ -34,7 +34,7 @@ class SlimevanillaListener : Listener {
             Slimefun.getRegistry().enabledSlimefunItems.filterNotNull().forEach { item ->
                 if (item.recipeType != RecipeType.ENHANCED_CRAFTING_TABLE) return@forEach
 
-                val research = item.research ?: return@forEach
+                val research = item.research
                 if (!profile.hasUnlocked(research)) return@forEach
 
                 if (item.recipe.flat == flatMatrix) {
