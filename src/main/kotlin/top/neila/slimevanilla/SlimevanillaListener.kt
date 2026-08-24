@@ -5,11 +5,13 @@ import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.Event.Result
 import org.bukkit.event.inventory.PrepareItemCraftEvent
+import org.bukkit.event.EventPriority
 import org.bukkit.inventory.ItemStack
+import org.bukkit.event.inventory.CraftItemEvent
 import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile
 import org.bukkit.NamespacedKey
-import org.bukkit.event.player.PlayerRecipeDiscoverEvent
 
 val emptyMatrix = arrayOfNulls<ItemStack>(9)
 
@@ -25,12 +27,14 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
     private var slimevanillaInstance: Slimevanilla? = null
     init {
         slimevanillaInstance = instance
+        instance.server.pluginManager.registerEvents(this, instance)
     }
     
-    @EventHandler
+    // io.github.thebusybiscuit.slimefun4.implementation.listeners.crafting.CraftingTableListener#onPrepareCraft priority = NORMAL
+    @EventHandler(priority = EventPriority.HIGH)
     fun onPrepareItemCraft(event: PrepareItemCraftEvent) {
         val inventory = event.inventory
-
+        
         val matrix = inventory.matrix
         if (matrix.contentEquals(emptyMatrix)) return
 
@@ -49,6 +53,19 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                     inventory.result = item.recipeOutput
                 }
             }
+        }
+    }
+    
+    // io.github.thebusybiscuit.slimefun4.implementation.listeners.crafting.CraftingTableListener#onCraft priority = NORMAL
+    @EventHandler(priority = EventPriority.HIGH)
+    fun onCraft(event: CraftItemEvent) {
+        if (event.inventory.result != null) {
+            // If it's really using slimefun items to craft vanilla items
+            // result will be null.
+            // And if result isn't null
+            // It's crafting with/to slimefun items.
+            event.result = Result.ALLOW
+            event.isCancelled = false
         }
     }
 

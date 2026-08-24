@@ -49,6 +49,6 @@ class Slimevanilla : SlimevanillaBase() {
     override fun onEnable() {
         addSlimefunRecipes()
 
-        server.pluginManager.registerEvents(SlimevanillaListener(this), this)
+        SlimevanillaListener(this)
     }
 }
