@@ -5,6 +5,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.ShapedRecipe
+import org.bukkit.inventory.recipe.CraftingBookCategory
 
 const val rowWidth = 3
 const val startChar = 'A'
@@ -42,6 +43,13 @@ class Slimevanilla : SlimevanillaBase() {
                 recipe.setIngredient(startChar + index, ingredient)
             }
 
+            recipe.group = item.itemGroup.unlocalizedName
+            when (item.itemGroup.key.key) {
+                "weapons", "tools", "armor", "magical_armor"
+                    -> recipe.category = CraftingBookCategory.EQUIPMENT
+                "electricity", "androids", "cargo", "gps"
+                    -> recipe.category = CraftingBookCategory.REDSTONE
+            }
             server.addRecipe(recipe)
         }
     }
