@@ -9,14 +9,13 @@ import org.bukkit.inventory.ItemStack
 
 val emptyMatrix = arrayOfNulls<ItemStack>(9)
 
-val toFlatItemStacks = { itemStacks: Array<ItemStack?> ->
-    itemStacks.map { stack ->
+val Array<ItemStack?>.flat
+    get() = map { stack ->
         if (stack == null) return@map null
         val flatStack = stack.clone()
         flatStack.amount = 1
         return@map flatStack
     }
-}
 
 class SlimevanillaListener : Listener {
     @EventHandler
@@ -26,11 +25,11 @@ class SlimevanillaListener : Listener {
 
         if (matrix.contentEquals(emptyMatrix)) return
 
-        val flatMatrix = toFlatItemStacks(matrix)
+        val flatMatrix = matrix.flat
         Slimefun.getRegistry().enabledSlimefunItems.filterNotNull().forEach { item ->
             if (item.recipeType != RecipeType.ENHANCED_CRAFTING_TABLE) return@forEach
 
-            if (toFlatItemStacks(item.recipe) == flatMatrix) {
+            if (item.recipe.flat == flatMatrix) {
                 inventory.result = item.recipeOutput
             }
         }
