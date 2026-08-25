@@ -45,6 +45,34 @@ val Array<ItemStack?>.flat
     }
 
 fun HumanEntity.toSlimefun(callback: Consumer<PlayerProfile>) = PlayerProfile.fromUUID(uniqueId, callback)
+val multiBlockToRecipeTypeMap = mapOf(
+    EnhancedCraftingTable::class to RecipeType.ENHANCED_CRAFTING_TABLE,
+    AncientAltar::class to RecipeType.ANCIENT_ALTAR,
+    ArmorForge::class to RecipeType.ARMOR_FORGE,
+    Compressor::class to RecipeType.COMPRESSOR,
+    GrindStone::class to RecipeType.GRIND_STONE,
+    Juicer::class to RecipeType.JUICER,
+    MagicWorkbench::class to RecipeType.MAGIC_WORKBENCH,
+    OreCrusher::class to RecipeType.ORE_CRUSHER,
+    OreWasher::class to RecipeType.ORE_WASHER,
+    Smeltery::class to RecipeType.SMELTERY,
+    MakeshiftSmeltery::class to RecipeType.SMELTERY,
+    PressureChamber::class to RecipeType.PRESSURE_CHAMBER
+)
+val multiBlockTitleKeyMap = mapOf(    
+    EnhancedCraftingTable::class to "enhanced_crafting_table",
+    AncientAltar::class to "ancient_altar",
+    ArmorForge::class to "armor_forge",
+    Compressor::class to "compressor",
+    GrindStone::class to "grind_stone",
+    Juicer::class to "juicer",
+    MagicWorkbench::class to "magic_workbench",
+    OreCrusher::class to "ore_crusher",
+    OreWasher::class to "ore_washer",
+    Smeltery::class to "smeltery",
+    MakeshiftSmeltery::class to "makeshift_smeltery",
+    PressureChamber::class to "pressure_chamber"
+)
 
 class SlimevanillaListener(instance: Slimevanilla) : Listener {
     private var slimevanillaInstance: Slimevanilla? = null
@@ -63,30 +91,7 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
         val player = event.player
         val item = multiBlock.slimefunItem
 
-        var type: RecipeType? = null
-        if (item is EnhancedCraftingTable) {
-            type = RecipeType.ENHANCED_CRAFTING_TABLE
-        } else if (item is AncientAltar) {
-            type = RecipeType.ANCIENT_ALTAR
-        } else if (item is ArmorForge) {
-            type = RecipeType.ARMOR_FORGE
-        } else if (item is Compressor) {
-            type = RecipeType.COMPRESSOR
-        } else if (item is GrindStone) {
-            type = RecipeType.GRIND_STONE
-        } else if (item is Juicer) {
-            type = RecipeType.JUICER
-        } else if (item is MagicWorkbench) {
-            type = RecipeType.MAGIC_WORKBENCH
-        } else if (item is OreCrusher) {
-            type = RecipeType.ORE_CRUSHER
-        } else if (item is OreWasher) {
-            type = RecipeType.ORE_WASHER
-        } else if (item is Smeltery || item is MakeshiftSmeltery) {
-            type = RecipeType.SMELTERY
-        } else if (item is PressureChamber) {
-            type = RecipeType.PRESSURE_CHAMBER
-        }
+        val type = multiBlockToRecipeTypeMap[item::class]
 
         player.toSlimefun { profile ->
             if (!profile.hasUnlocked(item.research)) return@toSlimefun
@@ -109,8 +114,11 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                 playerOpening[player.uniqueId] = type
                 val view = player.openWorkbench(event.clickedBlock.location, true)
 
-                val format =
-                    GlobalTranslator.translator().translate("container.enhanced_crafting", Locale.SIMPLIFIED_CHINESE)
+                val translationKey = "container.${multiBlockTitleKeyMap[item::class]}.title"
+                val format = GlobalTranslator.translator().translate(
+                    translationKey,
+                    Locale.SIMPLIFIED_CHINESE
+                )
                 val title = format?.format(emptyArray<Any>())
                 if (title != null)
                     view?.title = title
@@ -125,7 +133,7 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
         val playerVanillaDiscoverdRecipe = playerVanillaDiscoverdRecipes[player.uniqueId] ?: return
         player.undiscoverRecipes(player.discoveredRecipes)
         player.discoverRecipes(playerVanillaDiscoverdRecipe)
-        playerOpening[player.uniqueId] = null
+        playerOpening.remove(player.uniqueId)
     }
 
     // io.github.thebusybiscuit.slimefun4.implementation.listeners.crafting.CraftingTableListener#onPrepareCraft priority = NORMAL
