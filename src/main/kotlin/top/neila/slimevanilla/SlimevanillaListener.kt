@@ -9,7 +9,6 @@ import org.bukkit.event.Event.Result
 import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.event.EventPriority
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.MenuType.CRAFTING
 import org.bukkit.event.inventory.CraftItemEvent
 import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile
 import io.github.thebusybiscuit.slimefun4.implementation.items.altar.AncientAltar
@@ -27,10 +26,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.Smelt
 import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.HumanEntity
-import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.inventory.ShapedRecipe
-import org.bukkit.inventory.ShapelessRecipe
 import java.util.Locale
 import java.util.UUID
 import java.util.function.Consumer
@@ -59,7 +55,7 @@ val multiBlockToRecipeTypeMap = mapOf(
     MakeshiftSmeltery::class to RecipeType.SMELTERY,
     PressureChamber::class to RecipeType.PRESSURE_CHAMBER
 )
-val multiBlockTitleKeyMap = mapOf(    
+val multiBlockTitleKeyMap = mapOf(
     EnhancedCraftingTable::class to "enhanced_crafting_table",
     AncientAltar::class to "ancient_altar",
     ArmorForge::class to "armor_forge",
@@ -72,6 +68,15 @@ val multiBlockTitleKeyMap = mapOf(
     Smeltery::class to "smeltery",
     MakeshiftSmeltery::class to "makeshift_smeltery",
     PressureChamber::class to "pressure_chamber"
+)
+val shapelessRecipeTypes = arrayOf(
+    RecipeType.COMPRESSOR,
+    RecipeType.GRIND_STONE,
+    RecipeType.JUICER,
+    RecipeType.ORE_CRUSHER,
+    RecipeType.ORE_WASHER,
+    RecipeType.SMELTERY,
+    RecipeType.PRESSURE_CHAMBER
 )
 
 class SlimevanillaListener(instance: Slimevanilla) : Listener {
@@ -160,7 +165,13 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                     val research = item.research
                     if (!profile.hasUnlocked(research)) return@forEach
 
-                    if (item.recipe.flat == flatMatrix) {
+                        player.sendMessage(item.recipe.toString())
+                    if (
+                        if (shapelessRecipeTypes.contains(item.recipeType))
+                            item.recipe.filterNotNull() == matrix.filterNotNull()
+                        else
+                            item.recipe.flat == flatMatrix
+                    ) {
                         inventory.result = item.recipeOutput
                     }
                 }
