@@ -36,7 +36,7 @@ repositories {
 
 dependencies {
     compileOnly(libs.paper.api)
-    compileOnly("com.github.Slimefun:Slimefun4:RC-37")
+    compileOnly(libs.slimefun)
 
     implementation(libs.kotlin.stdlib)
 }

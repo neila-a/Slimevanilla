@@ -13,15 +13,16 @@ import org.bukkit.inventory.MenuType.CRAFTING
 import org.bukkit.event.inventory.CraftItemEvent
 import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.EnhancedCraftingTable
+import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.HumanEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryCloseEvent
+import java.util.Locale
 import java.util.UUID
 import java.util.function.Consumer
 
 val emptyMatrix = arrayOfNulls<ItemStack>(9)
-
 val Array<ItemStack?>.flat
     get() = map { stack ->
         if (stack == null) return@map null
@@ -53,24 +54,30 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
 
             if (item is EnhancedCraftingTable) {
                 event.isCancelled = true
-                
+
                 playerVanillaDiscoverdRecipes[player.uniqueId] = player.discoveredRecipes
                 player.undiscoverRecipes(player.discoveredRecipes)
-                player.discoverRecipes(profile.researches.map { it.affectedItems.map { item ->
-                    if (item.recipeType == RecipeType.ENHANCED_CRAFTING_TABLE) {
-                        val key = NamespacedKey(slimevanillaInstance!!, item.id)
-                        return@map key
-                    }
-                    return@map null
-                }.filterNotNull() }.flatten())
-                
+                player.discoverRecipes(profile.researches.map { research ->
+                    research.affectedItems.map { item ->
+                        if (item.recipeType == RecipeType.ENHANCED_CRAFTING_TABLE) {
+                            val key = NamespacedKey(slimevanillaInstance!!, item.id)
+                            return@map key
+                        }
+                        return@map null
+                    }.filterNotNull()
+                }.flatten())
+
                 playerOpeningEC[player.uniqueId] = true
-                val view = player.openWorkbench(null, true)
-                view?.title = "E_C"
+                val view = player.openWorkbench(event.clickedBlock.location, true)
+                
+                val format = GlobalTranslator.translator().translate("container.enhanced_crafting", Locale.SIMPLIFIED_CHINESE)
+                val title = format?.format(emptyArray<Any>())
+                if (title != null)
+                    view?.title = title
             }
         }
     }
-    
+
     @EventHandler
     fun onInventoryClose(event: InventoryCloseEvent) {
         val player = event.player
@@ -92,28 +99,28 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
         val players = inventory.viewers.filterNotNull()
         if (players.isEmpty()) return
         val player = players.component1()
-        
-        
+
+
         if (playerOpeningEC[player.uniqueId] ?: false) {
             // Opening EC
-            
+
             // In EC can't craft vanilla items
             // NEED TEST
             inventory.result = null
-            
+
             player.toSlimefun { profile ->
-            val flatMatrix = matrix.flat
-            Slimefun.getRegistry().enabledSlimefunItems.filterNotNull().forEach { item ->
-                if (item.recipeType != RecipeType.ENHANCED_CRAFTING_TABLE) return@forEach
+                val flatMatrix = matrix.flat
+                Slimefun.getRegistry().enabledSlimefunItems.filterNotNull().forEach { item ->
+                    if (item.recipeType != RecipeType.ENHANCED_CRAFTING_TABLE) return@forEach
 
-                val research = item.research
-                if (!profile.hasUnlocked(research)) return@forEach
+                    val research = item.research
+                    if (!profile.hasUnlocked(research)) return@forEach
 
-                if (item.recipe.flat == flatMatrix) {
-                    inventory.result = item.recipeOutput
+                    if (item.recipe.flat == flatMatrix) {
+                        inventory.result = item.recipeOutput
+                    }
                 }
             }
-        }
         }
     }
 
