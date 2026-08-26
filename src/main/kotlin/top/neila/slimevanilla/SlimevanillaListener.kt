@@ -1,6 +1,8 @@
 package top.neila.slimevanilla
 
 import io.github.thebusybiscuit.slimefun4.api.events.MultiBlockInteractEvent
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import org.bukkit.event.EventHandler
@@ -30,6 +32,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import java.util.Locale
 import java.util.UUID
 import java.util.function.Consumer
+import kotlin.math.floor
 
 val emptyMatrix = arrayOfNulls<ItemStack>(9)
 val Array<ItemStack?>.flat
@@ -183,7 +186,7 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                         if (shapelessRecipeTypes.contains(item.recipeType))
                             matrix.equalsIgnoreOrder(item.recipe)
                         else
-                            flatMatrix == item.recipe.flat 
+                            flatMatrix == item.recipe.flat
                     if (rightRecipe) {
                         inventory.result = item.recipeOutput
                     }
@@ -194,14 +197,30 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
 
     // io.github.thebusybiscuit.slimefun4.implementation.listeners.crafting.CraftingTableListener#onCraft priority = NORMAL
     @EventHandler(priority = EventPriority.HIGH)
-    fun onCraft(event: CraftItemEvent) {
-        if (event.inventory.result != null) {
+    fun onCraftItem(event: CraftItemEvent) {
+        val result = event.inventory.result
+        if (result != null) {
             // If it's really using slimefun items to craft vanilla items
             // result will be null.
             // And if result isn't null
             // It's crafting with/to slimefun items.
             event.result = Result.ALLOW
             event.isCancelled = false
+        }
+
+        val item = SlimefunItem.getByItem(result) ?: return
+        if (shapelessRecipeTypes.contains(item.recipeType)) {
+            val inventoryIngredient = event.inventory.matrix.filterNotNull().component1()
+            val inventoryAmount = inventoryIngredient.amount.toDouble()
+            val recipeAmount = item.recipe.filterNotNull().component1().amount
+            if (event.isShiftClick) {
+                // Craft as more as the CraftingInventory has
+                val amount = floor(inventoryAmount / recipeAmount.toDouble()).toInt()
+                event.inventory.result?.amount = amount
+                inventoryIngredient.amount -= recipeAmount * amount - 1
+            } else {
+                inventoryIngredient.amount -= recipeAmount - 1
+            }
         }
     }
 }
