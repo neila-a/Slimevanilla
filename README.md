@@ -28,7 +28,10 @@ Adds slimefun recipes to vanilla machines.
 
 - [ ] shapeless
   - [ ] amount
-  - [ ] pos
+    - [ ] recipe book
+  - [x] pos
+    - [x] single
+    - [x] multi
 - [ ] 洗矿机
 - [ ] 简易冶炼炉
 - [x] 文本

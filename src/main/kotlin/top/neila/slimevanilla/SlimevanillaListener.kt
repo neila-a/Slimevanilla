@@ -40,6 +40,8 @@ val Array<ItemStack?>.flat
         return@map flatStack
     }
 
+fun Array<ItemStack?>.equalsIgnoreOrder(other: Array<ItemStack?>) = size == other.size && toSet() == other.toSet()
+
 fun HumanEntity.toSlimefun(callback: Consumer<PlayerProfile>) = PlayerProfile.fromUUID(uniqueId, callback)
 val multiBlockToRecipeTypeMap = mapOf(
     EnhancedCraftingTable::class to RecipeType.ENHANCED_CRAFTING_TABLE,
@@ -165,10 +167,9 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                     val research = item.research
                     if (!profile.hasUnlocked(research)) return@forEach
 
-                        player.sendMessage(item.recipe.toString())
                     if (
                         if (shapelessRecipeTypes.contains(item.recipeType))
-                            item.recipe.filterNotNull() == matrix.filterNotNull()
+                            item.recipe.equalsIgnoreOrder(matrix)
                         else
                             item.recipe.flat == flatMatrix
                     ) {
