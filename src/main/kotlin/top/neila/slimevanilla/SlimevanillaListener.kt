@@ -1,5 +1,6 @@
 package top.neila.slimevanilla
 
+import com.destroystokyo.paper.event.player.PlayerRecipeBookClickEvent
 import io.github.thebusybiscuit.slimefun4.api.events.MultiBlockInteractEvent
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack
@@ -29,6 +30,7 @@ import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.HumanEntity
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.inventory.InventoryView
 import java.util.Locale
 import java.util.UUID
 import java.util.function.Consumer
@@ -86,26 +88,30 @@ val multiBlockTitleKeyMap = mapOf(
     MakeshiftSmeltery::class to "makeshift_smeltery",
     PressureChamber::class to "pressure_chamber"
 )
-val shapelessRecipeTypes = arrayOf(
+/**
+ * 配方材料数量多于1
+ */
+val needToCountRecipeTypes = arrayOf(
     RecipeType.COMPRESSOR,
     RecipeType.GRIND_STONE,
     RecipeType.JUICER,
     RecipeType.ORE_CRUSHER,
     RecipeType.ORE_WASHER,
-    RecipeType.SMELTERY,
     RecipeType.PRESSURE_CHAMBER
+)
+val shapelessRecipeTypes = needToCountRecipeTypes + arrayOf(
+    RecipeType.SMELTERY
 )
 
 class SlimevanillaListener(instance: Slimevanilla) : Listener {
-    private var slimevanillaInstance: Slimevanilla? = null
+    private var slimevanillaInstance: Slimevanilla = instance
 
     init {
-        slimevanillaInstance = instance
         instance.server.pluginManager.registerEvents(this, instance)
     }
 
     private val playerVanillaDiscoverdRecipes = mutableMapOf<UUID, Collection<NamespacedKey>>()
-    private val playerOpening = mutableMapOf<UUID, RecipeType?>()
+    private val playerOpening = mutableMapOf<UUID, Pair<RecipeType, InventoryView>?>()
 
     @EventHandler(priority = EventPriority.LOW)
     fun onMultiBlockInteract(event: MultiBlockInteractEvent) {
@@ -126,14 +132,13 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                 player.discoverRecipes(profile.researches.map { research ->
                     research.affectedItems.map { item ->
                         if (item.recipeType == type) {
-                            val key = NamespacedKey(slimevanillaInstance!!, item.id)
+                            val key = NamespacedKey(slimevanillaInstance, item.id)
                             return@map key
                         }
                         return@map null
                     }.filterNotNull()
                 }.flatten())
 
-                playerOpening[player.uniqueId] = type
                 val view = player.openWorkbench(event.clickedBlock.location, true)
 
                 val translationKey = "container.${multiBlockTitleKeyMap[item::class]}.title"
@@ -144,6 +149,8 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                 val title = format?.format(emptyArray<Any>())
                 if (title != null)
                     view?.title = title
+                if (view != null)
+                    playerOpening[player.uniqueId] = type to view
             }
         }
     }
@@ -170,26 +177,24 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
         if (players.isEmpty()) return
         val player = players.component1()
 
+        val opening = playerOpening[player.uniqueId] ?: return
+        inventory.result = null
 
-        if (playerOpening[player.uniqueId] != null) {
-            inventory.result = null
+        player.toSlimefun { profile ->
+            val flatMatrix = matrix.flat
+            Slimefun.getRegistry().enabledSlimefunItems.filterNotNull().forEach { item ->
+                if (item.recipeType != opening.first) return@forEach
 
-            player.toSlimefun { profile ->
-                val flatMatrix = matrix.flat
-                Slimefun.getRegistry().enabledSlimefunItems.filterNotNull().forEach { item ->
-                    if (item.recipeType != playerOpening[player.uniqueId]) return@forEach
+                val research = item.research
+                if (!profile.hasUnlocked(research)) return@forEach
 
-                    val research = item.research
-                    if (!profile.hasUnlocked(research)) return@forEach
-
-                    var rightRecipe =
-                        if (shapelessRecipeTypes.contains(item.recipeType))
-                            matrix.equalsIgnoreOrder(item.recipe)
-                        else
-                            flatMatrix == item.recipe.flat
-                    if (rightRecipe) {
-                        inventory.result = item.recipeOutput
-                    }
+                var rightRecipe =
+                    if (shapelessRecipeTypes.contains(item.recipeType))
+                        matrix.equalsIgnoreOrder(item.recipe)
+                    else
+                        flatMatrix == item.recipe.flat
+                if (rightRecipe) {
+                    inventory.result = item.recipeOutput
                 }
             }
         }
@@ -209,10 +214,10 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
         }
 
         val item = SlimefunItem.getByItem(result) ?: return
-        if (shapelessRecipeTypes.contains(item.recipeType)) {
+        if (needToCountRecipeTypes.contains(item.recipeType)) {
+            val recipeAmount = item.recipe.filterNotNull().component1().amount
             val inventoryIngredient = event.inventory.matrix.filterNotNull().component1()
             val inventoryAmount = inventoryIngredient.amount.toDouble()
-            val recipeAmount = item.recipe.filterNotNull().component1().amount
             if (event.isShiftClick) {
                 // Craft as more as the CraftingInventory has
                 val amount = floor(inventoryAmount / recipeAmount.toDouble()).toInt()
@@ -220,6 +225,42 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                 inventoryIngredient.amount -= recipeAmount * amount - 1
             } else {
                 inventoryIngredient.amount -= recipeAmount - 1
+            }
+        }
+    }
+
+    @EventHandler
+    fun onPlayerRecipeBookClick(event: PlayerRecipeBookClickEvent) {
+        if (event.isMakeAll) {
+            // Used all items already
+            return
+        }
+        val recipeKey = event.recipe
+        val recipe = slimevanillaInstance.server.getRecipe(recipeKey) ?: return
+        val result = SlimefunItem.getByItem(recipe.result) ?: return
+        if (!needToCountRecipeTypes.contains(result.recipeType)) return
+        val view = playerOpening[event.player.uniqueId]?.second ?: return
+        if (result.recipe.isEmpty()) return
+        val toMoveItem = result.recipe.filterNotNull().component1().clone()
+        toMoveItem.amount -= 1
+        val toMoveAmount = toMoveItem.amount
+        var restToMoveAmount = toMoveAmount
+        for (slot in view.bottomInventory.contents.filterNotNull()) {
+            if (restToMoveAmount == 0) break
+            if (slot.isSimilar(toMoveItem)) {
+                if (slot.amount >= toMoveAmount) {
+                    slot.amount -= toMoveAmount
+                    break
+                } else {
+                    restToMoveAmount -= slot.amount
+                    slot.amount = 0
+                }
+            }
+        }
+        val failedToAddMap = view.topInventory.addItem(toMoveItem)
+        if (failedToAddMap.isNotEmpty()) {
+            failedToAddMap.forEach { (index, stack) ->
+                view.bottomInventory.addItem(stack)
             }
         }
     }

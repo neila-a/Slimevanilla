@@ -26,14 +26,15 @@ Adds slimefun recipes to vanilla machines.
 
 ## bug
 
-- [ ] shapeless
-  - [ ] amount
+- [x] shapeless
+  - [x] amount
     - [x] detect
     - [x] remove
-    - [ ] recipe book
+    - [x] recipe book
   - [x] pos
     - [x] single
     - [x] multi
+- [ ] 原版物品配方
 - [ ] 洗矿机
 - [ ] 简易冶炼炉
 - [x] 文本
