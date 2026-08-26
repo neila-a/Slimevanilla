@@ -28,6 +28,8 @@ Adds slimefun recipes to vanilla machines.
 
 - [ ] shapeless
   - [ ] amount
+    - [x] detect
+    - [ ] remove
     - [ ] recipe book
   - [x] pos
     - [x] single

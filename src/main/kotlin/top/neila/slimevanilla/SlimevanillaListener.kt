@@ -40,7 +40,19 @@ val Array<ItemStack?>.flat
         return@map flatStack
     }
 
-fun Array<ItemStack?>.equalsIgnoreOrder(other: Array<ItemStack?>) = size == other.size && toSet() == other.toSet()
+fun Array<ItemStack?>.equalsIgnoreOrder(other: Array<ItemStack?>): Boolean {
+    val realThis = filterNotNull()
+    val realOther = other.filterNotNull()
+    if (realThis.size != realOther.size) return false
+
+    val otherSet = realOther.toSet()
+    return realThis.toSet().all { thisStack ->
+        otherSet.any { otherStack ->
+            thisStack.amount >= otherStack.amount
+                    && thisStack.isSimilar(otherStack)
+        }
+    }
+}
 
 fun HumanEntity.toSlimefun(callback: Consumer<PlayerProfile>) = PlayerProfile.fromUUID(uniqueId, callback)
 val multiBlockToRecipeTypeMap = mapOf(
@@ -167,12 +179,12 @@ class SlimevanillaListener(instance: Slimevanilla) : Listener {
                     val research = item.research
                     if (!profile.hasUnlocked(research)) return@forEach
 
-                    if (
+                    var rightRecipe =
                         if (shapelessRecipeTypes.contains(item.recipeType))
-                            item.recipe.equalsIgnoreOrder(matrix)
+                            matrix.equalsIgnoreOrder(item.recipe)
                         else
-                            item.recipe.flat == flatMatrix
-                    ) {
+                            flatMatrix == item.recipe.flat 
+                    if (rightRecipe) {
                         inventory.result = item.recipeOutput
                     }
                 }
