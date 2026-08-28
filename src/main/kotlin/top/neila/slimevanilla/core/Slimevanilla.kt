@@ -16,7 +16,6 @@ class Slimevanilla : SlimevanillaBase() {
     override fun onEnable() {
         Slimevanilla.instance = this
 
-        remapCopperIngot()
         translatePlugin()
         CraftListener()
         AddRecipeListener()

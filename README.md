@@ -1,3 +1,1 @@
-# Slimevanilla
-
-Adds slimefun recipes to vanilla machines.
+docs/en_US/README.md

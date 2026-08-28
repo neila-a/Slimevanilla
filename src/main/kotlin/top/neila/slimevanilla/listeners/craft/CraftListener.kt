@@ -32,8 +32,6 @@ import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
 import top.neila.slimevanilla.defines.recipetypes.lists.needTimeToCraftTypes
 import top.neila.slimevanilla.defines.recipetypes.lists.needToCountRecipeTypes
 import top.neila.slimevanilla.listeners.addrecipe.recipeInputMap
-import top.neila.slimevanilla.listeners.addrecipe.vanillaCopperIngot
-import top.neila.slimevanilla.listeners.addrecipe.vanillaCopperIngotMatrix
 import top.neila.slimevanilla.listeners.getRecipeKey
 import top.neila.slimevanilla.listeners.recipeList
 import java.util.Locale
@@ -187,24 +185,15 @@ class CraftListener : Listener {
                 var matched: ItemStack? = null
                 for (convert in RecipeType.getRecipeInputs(machine)) {
                     if (convert == null) continue
-                    /*
-                     * 铜锭替换：原版铜锭（Material.COPPER_INGOT）也能匹配 Slimefun 铜锭配方
-                     */
-                    val convertVanilla = convert.vanillaCopperIngot()
                     val slot = matrix.firstOrNull {
                         it != null && SlimefunUtils.isItemSimilar(
                             it,
-                            convertVanilla,
+                            convert,
                             true
                         ) && it.amount >= convert.amount
                     }
                     if (slot != null) {
-                        /*
-                         * 查产出必须用原始 convert 引用（Slimefun 的 getRecipeOutput 内部靠
-                         * getRecipeInputs(machine).indexOf(convert) 定位配方，传入替换后的
-                         * 新 ItemStack 会导致 indexOf 失败而返回错误产物）。对产出再做铜锭替换。
-                         */
-                        matched = RecipeType.getRecipeOutput(machine, convert)?.vanillaCopperIngot()
+                        matched = RecipeType.getRecipeOutput(machine, convert)
                         break
                     }
                 }
@@ -215,14 +204,8 @@ class CraftListener : Listener {
                  */
                 var matched: ItemStack? = null
                 for (input in RecipeType.getRecipeInputList(machine)) {
-                    /*
-                     * 铜锭替换：原版铜锭（Material.COPPER_INGOT）也能匹配 Slimefun 铜锭配方。
-                     * 匹配用替换后的矩阵，但查产出必须用原始 input 引用（Slimefun 的
-                     * getRecipeOutputList 内部靠 recipes.indexOf(input) 定位配方，传入替换后的
-                     * 新数组会导致 indexOf 失败而返回 recipes.get(0)[0]，即第一个配方产物）。
-                     */
-                    if (matchesWorkbench(machine, matrix, input.vanillaCopperIngotMatrix(), type)) {
-                        matched = RecipeType.getRecipeOutputList(machine, input)?.vanillaCopperIngot()
+                    if (matchesWorkbench(machine, matrix, input, type)) {
+                        matched = RecipeType.getRecipeOutputList(machine, input)
                         break
                     }
                 }
@@ -382,11 +365,11 @@ class CraftListener : Listener {
                     c != null && grid.firstOrNull {
                         it != null && SlimefunUtils.isItemSimilar(
                             it,
-                            c.vanillaCopperIngot(),
+                            c,
                             false
                         )
                     } != null
-                }?.vanillaCopperIngot()
+                }
             /*
              * 找不到对应的输入配方时，绝不执行扣减：
              * 否则会回退到 item.recipe[0] 的数量，并扣减网格里第一个非空格

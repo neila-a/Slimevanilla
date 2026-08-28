@@ -48,12 +48,8 @@ class AddRecipeRunnable : BukkitRunnable() {
              */
             val recipes = machine.recipeList
             for (i in recipes.indices step 2) {
-                /*
-                 * 将原版铜锭替换：Slimefun 自定义铜锭（COPPER_INGOT）→ 原版铜锭（Material.COPPER_INGOT），
-                 * 使这些配方在原版合成体系中以原版铜锭作为输入/产出，玩家放原版铜锭也能匹配。
-                 */
-                val inputMatrix = recipes[i].vanillaCopperIngotMatrix()
-                var output = recipes[i + 1].firstOrNull()?.vanillaCopperIngot() ?: continue
+                val inputMatrix = recipes[i]
+                var output = recipes[i + 1].firstOrNull() ?: continue
 
                 val key = machine.getRecipeKey(i)
                 /*
