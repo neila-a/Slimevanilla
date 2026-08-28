@@ -2,7 +2,9 @@ package top.neila.slimevanilla.listeners.craft
 
 import org.bukkit.inventory.ItemStack
 
-/* 从合成网格按 inputMatrix 扣除 count 份材料。 */
+/**
+ * 从合成网格按 inputMatrix 扣除 count 份材料。
+ */
 fun deductMaterials(input: Array<ItemStack?>?, grid: Array<ItemStack?>, count: Int) {
     if (input == null) return
     for (slot in grid.indices) {

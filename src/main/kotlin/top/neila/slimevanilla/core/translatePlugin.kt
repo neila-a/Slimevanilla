@@ -1,4 +1,4 @@
-package top.neila.slimevanilla
+package top.neila.slimevanilla.core
 
 import net.kyori.adventure.translation.GlobalTranslator
 import net.kyori.adventure.translation.TranslationStore

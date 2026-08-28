@@ -2,7 +2,7 @@ package top.neila.slimevanilla.listeners
 
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine
 import org.bukkit.NamespacedKey
-import top.neila.slimevanilla.Slimevanilla
+import top.neila.slimevanilla.core.Slimevanilla
 import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
 
 /**

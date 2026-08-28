@@ -4,7 +4,7 @@ version: "${version}"
 api-version: "26.2"
 load: POSTWORLD
 
-main: top.neila.slimevanilla.Slimevanilla
+main: top.neila.slimevanilla.core.Slimevanilla
 name: Slimevanilla
 author: Neila
 
