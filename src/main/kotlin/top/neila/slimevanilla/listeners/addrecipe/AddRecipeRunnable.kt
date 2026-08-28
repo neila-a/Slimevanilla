@@ -70,6 +70,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                         recipe.setIngredient('A', input)
                         recipe.category = effectiveOutput.bookCategory
                         recipe.group = recipeGroup(machine, inputMatrix, type)
+                        recipe.safeAdd()
                     }
 
                     RecipeType.SMELTERY -> {
@@ -88,6 +89,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                         merged.forEach { recipe.addIngredient(it) }
                         recipe.category = effectiveOutput.bookCategory
                         recipe.group = recipeGroup(machine, inputMatrix, type)
+                        recipe.safeAdd()
                     }
 
                     else -> {
@@ -96,6 +98,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                         val recipe = ShapedRecipeBuilder(key, effectiveOutput, inputMatrix)
                         recipe.category = effectiveOutput.bookCategory
                         recipe.group = recipeGroup(machine, inputMatrix, type)
+                        recipe.safeAdd()
                     }
                 }
                 /* 记录该 key 对应的完整输入矩阵，供 onPlayerRecipeBookClick 精确取用
