@@ -2,7 +2,7 @@ package top.neila.slimevanilla.listeners
 
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine
 import org.bukkit.NamespacedKey
-import top.neila.slimevanilla.core.Slimevanilla
+import top.neila.slimevanilla.core.Slimevanilla.Companion.instance
 import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
 
 /**
@@ -20,5 +20,5 @@ import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
  */
 infix fun MultiBlockMachine.recipeKeyAt(inputIndex: Int): NamespacedKey {
     val machineKey = multiBlockTitleKeyMap[this::class] ?: javaClass.simpleName.lowercase()
-    return NamespacedKey(Slimevanilla.instance!!, "${machineKey}_$inputIndex")
+    return NamespacedKey(instance!!, "${machineKey}_$inputIndex")
 }

@@ -3,7 +3,7 @@ package top.neila.slimevanilla.listeners.addrecipe
 import io.github.thebusybiscuit.slimefun4.api.events.SlimefunItemRegistryFinalizedEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import top.neila.slimevanilla.core.Slimevanilla
+import top.neila.slimevanilla.core.Slimevanilla.Companion.instance
 
 /**
  * Slimefun 的 multiblock 配方在其 SlimefunStartupTask（所有插件 onEnable 之后）才填充，  
@@ -15,7 +15,7 @@ import top.neila.slimevanilla.core.Slimevanilla
  */
 class AddRecipeListener : Listener {
     init {
-        Slimevanilla.instance?.server?.pluginManager?.registerEvents(this, Slimevanilla.instance!!)
+        instance?.server?.pluginManager?.registerEvents(this, instance!!)
     }
 
     @EventHandler

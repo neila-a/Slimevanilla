@@ -29,7 +29,7 @@ import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.inventory.CraftingInventory
 import org.bukkit.inventory.InventoryView
 import org.bukkit.inventory.ItemStack
-import top.neila.slimevanilla.core.Slimevanilla
+import top.neila.slimevanilla.core.Slimevanilla.Companion.instance
 import top.neila.slimevanilla.defines.recipetypes.multiBlockToRecipeTypeMap
 import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
 import top.neila.slimevanilla.defines.recipetypes.lists.needTimeToCraftTypes
@@ -44,8 +44,7 @@ import java.util.function.Consumer
 
 class CraftListener : Listener {
     init {
-        val instance = Slimevanilla.instance
-        instance?.server?.pluginManager?.registerEvents(this, instance)
+        instance!!.server.pluginManager.registerEvents(this, instance!!)
     }
 
     private val playerVanillaDiscoveredRecipes = mutableMapOf<UUID, Collection<NamespacedKey>>()
@@ -59,8 +58,6 @@ class CraftListener : Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     fun onMultiBlockInteract(event: MultiBlockInteractEvent) {
-        val instance = Slimevanilla.instance!!
-
         val multiBlock = event.multiBlock
         val player = event.player
         val item = multiBlock.slimefunItem
@@ -215,7 +212,7 @@ class CraftListener : Listener {
                      */
                     inventory.result = effectiveOutput
                     val pid = player.uniqueId
-                    pendingTimeToCraft[pid] = runTaskLater(Slimevanilla.instance!!, 60L)
+                    pendingTimeToCraft[pid] = runTaskLater(instance!!, 60L)
                 } else {
                     inventory.result = effectiveOutput
                 }
@@ -321,11 +318,10 @@ class CraftListener : Listener {
                     event.inventory.result = null
                     val output = result?.clone() ?: return
                     output.amount = 1
-                    val instance = Slimevanilla.instance!!
                     this.output = output
                     this.player = player
                     this.n = n
-                    runTaskLater(instance, 0L)
+                    runTaskLater(instance!!, 0L)
                 }
                 return
             }
@@ -465,8 +461,7 @@ class CraftListener : Listener {
              * 数量匹配由 onPrepareItemCraft / onCraftItem 处理，此处无需补格。
              */
             if (isSingleSlot) {
-                val instance = Slimevanilla.instance!!
-                runTask(instance)
+                runTask(instance!!)
             }
         }
 
@@ -482,9 +477,8 @@ class CraftListener : Listener {
              * 直接取注册时记录的输入矩阵，避免「按产物反查 getRecipeInputs」这种
              * 在同产物多配方（如压缩机：煤矿块×8→碳×9 与 煤炭×8→碳×1）时会取错输入的脆弱逻辑。
              */
-            val instance = Slimevanilla.instance!!
             val inputMatrix = recipeInputMap[recipeKey] ?: return
-            val result = SlimefunItem.getByItem(instance.server.getRecipe(recipeKey)?.result) ?: return
+            val result = SlimefunItem.getByItem(instance!!.server.getRecipe(recipeKey)?.result) ?: return
             /*
              * 取出该配方需要的材料（类型+数量）
              */
