@@ -27,6 +27,10 @@ import top.neila.slimevanilla.listeners.recipeList
 val recipeInputMap = mutableMapOf<NamespacedKey, Array<ItemStack?>>()
 
 class AddRecipeRunnable : BukkitRunnable() {
+    init {
+        runTask(Slimevanilla.instance!!)    
+    }
+    
     override fun run() {
         val singleSlotTypes = needToCountRecipeTypes.toSet()
 

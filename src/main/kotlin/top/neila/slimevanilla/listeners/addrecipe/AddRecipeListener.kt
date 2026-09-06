@@ -20,7 +20,6 @@ class AddRecipeListener : Listener {
 
     @EventHandler
     fun onRegistryFinalized(event: SlimefunItemRegistryFinalizedEvent) {
-        val runnable = AddRecipeRunnable()
-        runnable.runTask(Slimevanilla.instance!!)
+        AddRecipeRunnable()
     }
 }
