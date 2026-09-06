@@ -13,7 +13,7 @@ import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ShapedRecipe
 import org.bukkit.inventory.ShapelessRecipe
 import org.bukkit.scheduler.BukkitRunnable
-import top.neila.slimevanilla.core.Slimevanilla.Companion.instance
+import top.neila.slimevanilla.core.Slimevanilla
 import top.neila.slimevanilla.defines.recipetypes.lists.needToCountRecipeTypes
 import top.neila.slimevanilla.defines.recipetypes.multiBlockToRecipeTypeMap
 import top.neila.slimevanilla.listeners.recipeKeyAt
@@ -28,7 +28,7 @@ val recipeInputMap = mutableMapOf<NamespacedKey, Array<ItemStack?>>()
 
 class AddRecipeRunnable : BukkitRunnable() {
     init {
-        runTask(instance!!)    
+        runTask(Slimevanilla)    
     }
     
     override fun run() {
@@ -134,7 +134,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                  * 使玩家放 1 沙或 2 沙都能合成盐，且两条输入原料都是沙子（group 相同）。
                  */
                 if (machine is OreWasher && SlimefunUtils.isItemSimilar(effectiveOutput, SlimefunItems.SALT, true)) {
-                    val altKey = NamespacedKey(instance!!, "${key.key}_alt")
+                    val altKey = NamespacedKey(Slimevanilla, "${key.key}_alt")
                     val altRecipe = ShapelessRecipe(altKey, effectiveOutput)
                     altRecipe.addIngredient(Material.SAND)
                     altRecipe.addIngredient(Material.SAND)

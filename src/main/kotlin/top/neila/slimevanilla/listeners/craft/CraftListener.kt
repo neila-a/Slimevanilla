@@ -29,7 +29,7 @@ import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.inventory.CraftingInventory
 import org.bukkit.inventory.InventoryView
 import org.bukkit.inventory.ItemStack
-import top.neila.slimevanilla.core.Slimevanilla.Companion.instance
+import top.neila.slimevanilla.core.Slimevanilla
 import top.neila.slimevanilla.defines.recipetypes.multiBlockToRecipeTypeMap
 import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
 import top.neila.slimevanilla.defines.recipetypes.lists.needTimeToCraftTypes
@@ -44,7 +44,7 @@ import java.util.function.Consumer
 
 class CraftListener : Listener {
     init {
-        instance!!.server.pluginManager.registerEvents(this, instance!!)
+        Slimevanilla.server.pluginManager.registerEvents(this, Slimevanilla)
     }
 
     private val playerVanillaDiscoveredRecipes = mutableMapOf<UUID, Collection<NamespacedKey>>()
@@ -212,7 +212,7 @@ class CraftListener : Listener {
                      */
                     inventory.result = effectiveOutput
                     val pid = player.uniqueId
-                    pendingTimeToCraft[pid] = runTaskLater(instance!!, 60L)
+                    pendingTimeToCraft[pid] = runTaskLater(Slimevanilla, 60L)
                 } else {
                     inventory.result = effectiveOutput
                 }
@@ -321,7 +321,7 @@ class CraftListener : Listener {
                     this.output = output
                     this.player = player
                     this.n = n
-                    runTaskLater(instance!!, 0L)
+                    runTaskLater(Slimevanilla, 0L)
                 }
                 return
             }
@@ -461,7 +461,7 @@ class CraftListener : Listener {
              * 数量匹配由 onPrepareItemCraft / onCraftItem 处理，此处无需补格。
              */
             if (isSingleSlot) {
-                runTask(instance!!)
+                runTask(Slimevanilla)
             }
         }
 
@@ -478,7 +478,7 @@ class CraftListener : Listener {
              * 在同产物多配方（如压缩机：煤矿块×8→碳×9 与 煤炭×8→碳×1）时会取错输入的脆弱逻辑。
              */
             val inputMatrix = recipeInputMap[recipeKey] ?: return
-            val result = SlimefunItem.getByItem(instance!!.server.getRecipe(recipeKey)?.result) ?: return
+            val result = SlimefunItem.getByItem(Slimevanilla.server.getRecipe(recipeKey)?.result) ?: return
             /*
              * 取出该配方需要的材料（类型+数量）
              */
