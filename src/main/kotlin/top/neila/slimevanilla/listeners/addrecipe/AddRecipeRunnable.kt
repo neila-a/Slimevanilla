@@ -16,7 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable
 import top.neila.slimevanilla.core.Slimevanilla
 import top.neila.slimevanilla.defines.recipetypes.lists.needToCountRecipeTypes
 import top.neila.slimevanilla.defines.recipetypes.multiBlockToRecipeTypeMap
-import top.neila.slimevanilla.listeners.getRecipeKey
+import top.neila.slimevanilla.listeners.recipeKeyAt
 import top.neila.slimevanilla.listeners.recipeList
 
 /**
@@ -55,7 +55,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                 val inputMatrix = recipes[i]
                 var output = recipes[i + 1].firstOrNull() ?: continue
 
-                val key = machine.getRecipeKey(i)
+                val key = machine recipeKeyAt i
                 /*
                  * 洗矿机（OreWasher）：原版由 Sifted Ore 随机产出 9 种矿石粉之一（不可选）。
                  * 为在合成台架构下还原「随机」特性，合成时的实际产出（预览与合成结果）都改为

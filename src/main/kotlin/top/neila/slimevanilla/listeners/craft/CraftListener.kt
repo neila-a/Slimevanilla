@@ -35,7 +35,7 @@ import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
 import top.neila.slimevanilla.defines.recipetypes.lists.needTimeToCraftTypes
 import top.neila.slimevanilla.defines.recipetypes.lists.needToCountRecipeTypes
 import top.neila.slimevanilla.listeners.addrecipe.recipeInputMap
-import top.neila.slimevanilla.listeners.getRecipeKey
+import top.neila.slimevanilla.listeners.recipeKeyAt
 import top.neila.slimevanilla.listeners.recipeList
 import java.util.Locale
 import java.util.UUID
@@ -94,7 +94,7 @@ class CraftListener : Listener {
                         val outputItem = SlimefunItem.getByItem(output)
                         val research = outputItem?.research
                         if (research == null || profile.hasUnlocked(research)) {
-                            add(item.getRecipeKey(i))
+                            add(item recipeKeyAt i)
                         }
                     }
                 })

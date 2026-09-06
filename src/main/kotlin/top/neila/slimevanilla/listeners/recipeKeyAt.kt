@@ -18,7 +18,7 @@ import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
  *     导致点开看到的是别的配方、且扣减数量取自错误配方（只扣 1 个）。
  * 用原始输入索引可保证每条配方都有唯一、稳定、与注册/解锁两边完全一致的 key。
  */
-fun MultiBlockMachine.getRecipeKey(inputIndex: Int): NamespacedKey {
+infix fun MultiBlockMachine.recipeKeyAt(inputIndex: Int): NamespacedKey {
     val machineKey = multiBlockTitleKeyMap[this::class] ?: javaClass.simpleName.lowercase()
     return NamespacedKey(Slimevanilla.instance!!, "${machineKey}_$inputIndex")
 }
