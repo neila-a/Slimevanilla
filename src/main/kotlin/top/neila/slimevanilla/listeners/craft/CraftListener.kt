@@ -35,6 +35,9 @@ import top.neila.slimevanilla.defines.recipetypes.lists.needToCountRecipeTypes
 import top.neila.slimevanilla.listeners.addrecipe.recipeInputMap
 import top.neila.slimevanilla.listeners.recipeKeyAt
 import top.neila.slimevanilla.listeners.recipeList
+import top.neila.slimevanilla.listeners.craft.playerdata.opening.*
+import top.neila.slimevanilla.listeners.craft.playerdata.recipes.*
+import top.neila.slimevanilla.listeners.craft.playerdata.timetocraft.*
 import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
@@ -45,15 +48,6 @@ class CraftListener : Listener {
     init {
         Slimevanilla.server.pluginManager.registerEvents(this, Slimevanilla)
     }
-
-    private val playerVanillaDiscoveredRecipes = mutableMapOf<UUID, Collection<NamespacedKey>>()
-    private val playerOpening = mutableMapOf<UUID, Pair<MultiBlockMachine, InventoryView>?>()
-
-    /**
-     * time to craft：按玩家记录挂起的「延迟显示产物」任务，  
-     * 避免每次 PrepareItemCraft 重复调度
-     */
-    private val pendingTimeToCraft = mutableMapOf<UUID, BukkitTask>()
 
     @EventHandler(priority = LOW)
     fun onMultiBlockInteract(event: MultiBlockInteractEvent) {
@@ -70,15 +64,13 @@ class CraftListener : Listener {
             if (type != null) {
                 event.isCancelled = true
 
-                playerVanillaDiscoveredRecipes[player.uniqueId] = player.discoveredRecipes
-                player.undiscoverRecipes(player.discoveredRecipes)
                 /*
                  * 直接遍历该机器 getRecipes() 原始列表（[输入, 输出, ...]），
                  * 解锁其中「无科研」或「科研已解锁」的配方。
                  * 用原始输入索引 i 作为 key，与 addSlimefunRecipes 注册时完全一致，
                  * 且能正确解锁同一机器同一产物的多个不同输入配方（如压缩机：煤矿块×8→碳×9 与 煤炭×8→碳×1）。
                  */
-                player.discoverRecipes(buildList {
+                player.discoverSlimevanillaRecipes(buildList {
                     val recipes = item.recipeList
                     for (i in recipes.indices step 2) {
                         val output = recipes[i + 1].firstOrNull() ?: continue
@@ -102,7 +94,7 @@ class CraftListener : Listener {
                 if (title != titleKey)
                     view?.title = title
                 if (view != null)
-                    playerOpening[player.uniqueId] = item to view
+                    player.open(item, view)
             }
         }
     }
@@ -110,18 +102,13 @@ class CraftListener : Listener {
     @EventHandler
     fun onInventoryClose(event: InventoryCloseEvent) {
         val player = event.player
-        /*
-         * 关闭合成界面时取消挂起的 time to craft 延迟任务，避免对失效库存设 result
-         */
-        pendingTimeToCraft.remove(player.uniqueId)?.cancel()
-        if (playerOpening[player.uniqueId] == null) return
-        val playerVanillaDiscoveredRecipe = playerVanillaDiscoveredRecipes[player.uniqueId] ?: return
-        player.undiscoverRecipes(player.discoveredRecipes)
-        player.discoverRecipes(playerVanillaDiscoveredRecipe)
-        playerOpening.remove(player.uniqueId)
+        player.cancelTimeToCraftTask()
+        if (player.opening == null) return
+        player.restoreSlimevanillaRecipes()
+        player.close()
     }
 
-    private inner class PrepareItemCraftRunnable(
+    private class PrepareItemCraftRunnable(
         event: PrepareItemCraftEvent
     ) : BukkitRunnable() {
         val player: HumanEntity
@@ -137,7 +124,7 @@ class CraftListener : Listener {
             val matrix = inventory.matrix
             if (matrix.contentEquals(emptyMatrix)) return
 
-            val opening = playerOpening[player.uniqueId] ?: return
+            val opening = player.opening ?: return
             inventory.result = null
 
             val machine = opening.first
@@ -208,8 +195,7 @@ class CraftListener : Listener {
                      * 到点（约 3 秒）后解除禁止，玩家才可真正拿取。
                      */
                     inventory.result = effectiveOutput
-                    val pid = player.uniqueId
-                    pendingTimeToCraft[pid] = runTaskLater(Slimevanilla, 60L)
+                    player pendTimeToCraftTask runTaskLater(Slimevanilla, 60L)
                 } else {
                     inventory.result = effectiveOutput
                 }
@@ -226,12 +212,11 @@ class CraftListener : Listener {
          */
         override fun run() {
             val pid = player.uniqueId
-            if (pendingTimeToCraft.containsKey(pid)) return
-            pendingTimeToCraft.remove(pid)
+            if (player.isTimeToCrafting()) return
 
             val p = player as? Player ?: return
             if (!p.isOnline) return
-            if (playerOpening[pid] == null) return
+            if (player.opening == null) return
             p.world.playSound(p.location, Sound.BLOCK_ANVIL_USE, 1.0f, 1.0f)
         }
     }
@@ -244,7 +229,7 @@ class CraftListener : Listener {
         PrepareItemCraftRunnable(event)
     }
 
-    private inner class CraftItemRunnable(val event: CraftItemEvent) : BukkitRunnable() {
+    private class CraftItemRunnable(val event: CraftItemEvent) : BukkitRunnable() {
         var output: ItemStack? = null
         var player: Player? = null
         var n: Int? = null
@@ -267,7 +252,7 @@ class CraftListener : Listener {
             }
 
             val item = getByItem(result) ?: return
-            val opening = playerOpening[event.whoClicked.uniqueId] ?: return
+            val opening = event.whoClicked.opening ?: return
             val machine = opening.first
             val type = multiBlockToRecipeTypeMap[machine::class] ?: return
             val player = event.whoClicked as? Player ?: return
@@ -289,7 +274,7 @@ class CraftListener : Listener {
              * 此时玩家点击拿取应被拒绝（DENY + 提示）；等待结束（pending 已移除）后才允许真正拿取。
              */
             if (type in needTimeToCraftTypes) {
-                if (pendingTimeToCraft.containsKey(player.uniqueId)) {
+                if (player.isTimeToCrafting()) {
                     /*
                      * 尚未到时间：禁止拿取并提示玩家等待。产物仍显示在合成台，但不会被取走，
                      * 也不会扣减材料（event 已 DENY）。
@@ -434,7 +419,7 @@ class CraftListener : Listener {
         CraftItemRunnable(event)
     }
 
-    private inner class PlayerRecipeBookClickRunnable(val event: PlayerRecipeBookClickEvent) : BukkitRunnable() {
+    private class PlayerRecipeBookClickRunnable(val event: PlayerRecipeBookClickEvent) : BukkitRunnable() {
         init {
             playerRecipeBookClick()
         }
@@ -447,7 +432,7 @@ class CraftListener : Listener {
              * 单格机器判断不能用 result.recipeType（单格机器产物注册时 recipeType 恒为 MULTIBLOCK），
              * 改从 playerOpening 拿到当前机器类判断。
              */
-            val opening = playerOpening[event.player.uniqueId] ?: return
+            val opening = event.player.opening ?: return
             val machine = opening.first
             val isSingleSlot = multiBlockToRecipeTypeMap[machine::class] in needToCountRecipeTypes
             /*
@@ -487,7 +472,7 @@ class CraftListener : Listener {
             val needAmount = convert.amount
             val player = event.player
 
-            val view = playerOpening[player.uniqueId]?.second ?: return
+            val view = player.opening?.second ?: return
             val top = view.topInventory as CraftingInventory
             /*
              * 单格机器配方只含一种输入，pattern "A" 即第 0 格；找该材料所在格
