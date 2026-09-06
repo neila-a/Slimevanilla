@@ -1,4 +1,4 @@
-package top.neila.slimevanilla.listeners.craft
+package top.neila.slimevanilla.listeners.craft.runnables.craftitem.ignite
 
 import org.bukkit.Material
 import org.bukkit.entity.Player

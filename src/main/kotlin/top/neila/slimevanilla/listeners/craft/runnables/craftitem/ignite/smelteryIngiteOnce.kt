@@ -1,4 +1,4 @@
-package top.neila.slimevanilla.listeners.craft
+package top.neila.slimevanilla.listeners.craft.runnables.craftitem.ignite
 
 import java.util.concurrent.ThreadLocalRandom.current
 import org.bukkit.entity.Player

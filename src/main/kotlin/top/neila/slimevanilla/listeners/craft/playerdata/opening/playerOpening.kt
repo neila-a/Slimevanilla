@@ -4,4 +4,4 @@ import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine
 import java.util.UUID
 import org.bukkit.inventory.InventoryView
 
-internal val playerOpening = mutableMapOf<UUID, Pair<MultiBlockMachine, InventoryView>?>()
+val playerOpening = mutableMapOf<UUID, Pair<MultiBlockMachine, InventoryView>?>()
