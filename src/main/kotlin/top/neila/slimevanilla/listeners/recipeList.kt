@@ -1,7 +1,7 @@
 package top.neila.slimevanilla.listeners
 
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine
-import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun.getRegistry
 import org.bukkit.inventory.ItemStack
 
 /**
@@ -22,7 +22,7 @@ val MultiBlockMachine.recipeList
         val fromMachine = getRecipes()
         if (fromMachine.isNotEmpty()) return fromMachine.map { it as Array<ItemStack?> }
         val out = mutableListOf<Array<ItemStack?>>()
-        for (item in Slimefun.getRegistry().enabledSlimefunItems) {
+        for (item in getRegistry().enabledSlimefunItems) {
             if (item.recipeType.machine == this) {
                 val input = item.recipe
                 val output = item.item

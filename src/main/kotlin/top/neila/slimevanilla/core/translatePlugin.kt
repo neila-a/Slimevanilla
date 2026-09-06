@@ -1,16 +1,16 @@
 package top.neila.slimevanilla.core
 
-import net.kyori.adventure.translation.GlobalTranslator
-import net.kyori.adventure.translation.TranslationStore
+import net.kyori.adventure.translation.GlobalTranslator.translator
+import net.kyori.adventure.translation.TranslationStore.messageFormat
 import org.bukkit.NamespacedKey
-import java.util.Locale
-import java.util.ResourceBundle
+import java.util.Locale.SIMPLIFIED_CHINESE
+import java.util.ResourceBundle.getBundle
 import top.neila.slimevanilla.core.Slimevanilla
 
 fun translatePlugin() {
-    val store = TranslationStore.messageFormat(NamespacedKey(Slimevanilla, "translation_store"))
+    val store = messageFormat(NamespacedKey(Slimevanilla, "translation_store"))
 
-    val bundle = ResourceBundle.getBundle("top.neila.slimevanilla.Bundle", Locale.SIMPLIFIED_CHINESE)
-    store.registerAll(Locale.SIMPLIFIED_CHINESE, bundle, true)
-    GlobalTranslator.translator().addSource(store)
+    val bundle = getBundle("top.neila.slimevanilla.Bundle", SIMPLIFIED_CHINESE)
+    store.registerAll(SIMPLIFIED_CHINESE, bundle, true)
+    translator().addSource(store)
 }

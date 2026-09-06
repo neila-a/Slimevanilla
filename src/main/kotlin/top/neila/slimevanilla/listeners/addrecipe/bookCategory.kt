@@ -1,8 +1,9 @@
 package top.neila.slimevanilla.listeners.addrecipe
 
-import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem.getByItem
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.recipe.CraftingBookCategory
+import org.bukkit.inventory.recipe.CraftingBookCategory.*
 
 /**
  * 按产物所属 itemGroup 决定原版配方书的分类页，比「按机器」更准确  
@@ -12,11 +13,11 @@ import org.bukkit.inventory.recipe.CraftingBookCategory
  */
 val ItemStack.bookCategory
     get(): CraftingBookCategory {
-        val groupKey = SlimefunItem.getByItem(this)?.itemGroup?.key?.key ?: return CraftingBookCategory.MISC
+        val groupKey = getByItem(this)?.itemGroup?.key?.key ?: return MISC
         return when (groupKey) {
-            "weapons", "tools", "armor", "magical_armor", "equipment" -> CraftingBookCategory.EQUIPMENT
-            "electricity", "androids", "cargo", "gps", "technical" -> CraftingBookCategory.REDSTONE
-            "resources", "misc", "food", "materials" -> CraftingBookCategory.BUILDING
-            else -> CraftingBookCategory.MISC
+            "weapons", "tools", "armor", "magical_armor", "equipment" -> EQUIPMENT
+            "electricity", "androids", "cargo", "gps", "technical" -> REDSTONE
+            "resources", "misc", "food", "materials" -> BUILDING
+            else -> MISC
         }
     }

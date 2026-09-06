@@ -1,7 +1,7 @@
 package top.neila.slimevanilla.defines.recipetypes.lists
 
-import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
+import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType.SMELTERY
 
 val shapelessRecipeTypes = needToCountRecipeTypes + arrayOf(
-    RecipeType.SMELTERY
+    SMELTERY
 )

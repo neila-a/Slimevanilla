@@ -1,6 +1,6 @@
 package top.neila.slimevanilla.listeners.craft
 
-import net.kyori.adventure.translation.GlobalTranslator
+import net.kyori.adventure.translation.GlobalTranslator.translator
 import java.util.Locale
 
 /**
@@ -9,6 +9,6 @@ import java.util.Locale
  */
 val String.translated
     get(): String {
-        val format = GlobalTranslator.translator().translate(this, Locale.SIMPLIFIED_CHINESE)
+        val format = translator().translate(this, Locale.SIMPLIFIED_CHINESE)
         return format?.format(emptyArray<Any>()) ?: this
     }

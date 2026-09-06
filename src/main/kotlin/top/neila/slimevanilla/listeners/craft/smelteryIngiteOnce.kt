@@ -1,6 +1,6 @@
 package top.neila.slimevanilla.listeners.craft
 
-import java.util.concurrent.ThreadLocalRandom
+import java.util.concurrent.ThreadLocalRandom.current
 import org.bukkit.entity.Player
 
 /**
@@ -11,5 +11,5 @@ import org.bukkit.entity.Player
  * （等价于「火没点着」，材料不被消耗，提示玩家需要打火石）。
 */
 fun Player.smelteryIgniteOnce(): Boolean {
-    return ThreadLocalRandom.current().nextInt(100) >= 34 || consumeFlintAndSteel()
+    return current().nextInt(100) >= 34 || consumeFlintAndSteel()
 }

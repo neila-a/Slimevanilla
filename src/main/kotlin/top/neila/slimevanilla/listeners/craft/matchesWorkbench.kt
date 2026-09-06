@@ -2,7 +2,7 @@ package top.neila.slimevanilla.listeners.craft
 
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine
-import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils
+import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils.isItemSimilar
 import org.bukkit.inventory.ItemStack
 
 /**
@@ -24,7 +24,7 @@ fun matchesWorkbench(
         val used = BooleanArray(9)
         val allNeededMatched = input.filterNotNull().all { needStack ->
             matrix.withIndex().any { (i, slot) ->
-                !used[i] && slot != null && SlimefunUtils.isItemSimilar(slot, needStack, true)
+                !used[i] && slot != null && isItemSimilar(slot, needStack, true)
                     .also { if (it) used[i] = true }
             }
         }
@@ -35,7 +35,7 @@ fun matchesWorkbench(
     }
 
     for (i in 0..8) {
-        if (!SlimefunUtils.isItemSimilar(matrix[i], input[i], true, true, false)) {
+        if (!isItemSimilar(matrix[i], input[i], true, true, false)) {
             return false
         }
     }

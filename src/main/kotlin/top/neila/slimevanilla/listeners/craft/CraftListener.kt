@@ -2,14 +2,14 @@ package top.neila.slimevanilla.listeners.craft
 
 import com.destroystokyo.paper.event.player.PlayerRecipeBookClickEvent
 import io.github.thebusybiscuit.slimefun4.api.events.MultiBlockInteractEvent
-import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem.getByItem
 import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile
-import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
+import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType.*
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems
 import org.bukkit.scheduler.BukkitRunnable
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.OreWasher
-import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils
+import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils.isItemSimilar
 import kotlin.math.min
 import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.Sound.BLOCK_ANVIL_USE
@@ -19,16 +19,14 @@ import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.Sound
 import org.bukkit.entity.HumanEntity
-import org.bukkit.event.Event.Result
+import org.bukkit.event.Event.Result.*
 import org.bukkit.event.EventHandler
-import org.bukkit.event.EventPriority
+import org.bukkit.event.EventPriority.*
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.CraftItemEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
-import org.bukkit.inventory.CraftingInventory
-import org.bukkit.inventory.InventoryView
-import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.*
 import top.neila.slimevanilla.core.Slimevanilla
 import top.neila.slimevanilla.defines.recipetypes.multiBlockToRecipeTypeMap
 import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
@@ -41,6 +39,7 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 import java.util.function.Consumer
+import org.bukkit.scheduler.BukkitTask
 
 class CraftListener : Listener {
     init {
@@ -54,9 +53,9 @@ class CraftListener : Listener {
      * time to craft：按玩家记录挂起的「延迟显示产物」任务，  
      * 避免每次 PrepareItemCraft 重复调度
      */
-    private val pendingTimeToCraft = mutableMapOf<UUID, org.bukkit.scheduler.BukkitTask>()
+    private val pendingTimeToCraft = mutableMapOf<UUID, BukkitTask>()
 
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = LOW)
     fun onMultiBlockInteract(event: MultiBlockInteractEvent) {
         val multiBlock = event.multiBlock
         val player = event.player
@@ -88,7 +87,7 @@ class CraftListener : Listener {
                          * 视为「无科研限制」直接解锁，而不是跳过——否则所有原版产出配方
                          * （如磨石：1 烈焰棒 -> 4 烈焰粉）都永远不被解锁、在配方书里不显示。
                          */
-                        val outputItem = SlimefunItem.getByItem(output)
+                        val outputItem = getByItem(output)
                         val research = outputItem?.research
                         if (research == null || profile.hasUnlocked(research)) {
                             add(item recipeKeyAt i)
@@ -126,11 +125,9 @@ class CraftListener : Listener {
         event: PrepareItemCraftEvent
     ) : BukkitRunnable() {
         val player: HumanEntity
-        val inventory: CraftingInventory
+        val inventory: CraftingInventory = event.inventory
 
         init {
-            this.inventory = event.inventory
-
             val players = inventory.viewers.filterNotNull()
             this.player = players.component1()
             prepareItemCraft()
@@ -145,7 +142,7 @@ class CraftListener : Listener {
 
             val machine = opening.first
             /*
-             * MultiBlockMachine.recipeType 恒为 RecipeType.MULTIBLOCK，需以具体类在映射中的分类标签判断
+             * MultiBlockMachine.recipeType 恒为 MULTIBLOCK，需以具体类在映射中的分类标签判断
              */
             val type = multiBlockToRecipeTypeMap[machine::class] ?: return
 
@@ -156,34 +153,34 @@ class CraftListener : Listener {
                 val output = if (needToCountRecipeTypes.contains(type)) {
                     /*
                      * 单格输入机器（Compressor/GrindStone/Juicer/OreCrusher/OreWasher/PressureChamber）
-                     * 使用 RecipeType.getRecipeInputs 遍历每个配方的首个输入格。
+                     * 使用 getRecipeInputs 遍历每个配方的首个输入格。
                      * 参考 Compressor.onInteract：遍历容器任意位置匹配，且需 amount 达到配方要求数。
                      * 因此这里也遍历整个合成矩阵（任意格），而非只看 matrix[0]。
                      */
                     var matched: ItemStack? = null
-                    for (convert in RecipeType.getRecipeInputs(machine)) {
+                    for (convert in getRecipeInputs(machine)) {
                         if (convert == null) continue
                         val slot = matrix.firstOrNull {
-                            it != null && SlimefunUtils.isItemSimilar(
+                            it != null && isItemSimilar(
                                 it,
                                 convert,
                                 true
                             ) && it.amount >= convert.amount
                         }
                         if (slot != null) {
-                            matched = RecipeType.getRecipeOutput(machine, convert)
+                            matched = getRecipeOutput(machine, convert)
                             break
                         }
                     }
                     matched
                 } else {
                     /*
-                     * 多格输入机器：使用 RecipeType.getRecipeInputList 遍历完整输入矩阵
+                     * 多格输入机器：使用 getRecipeInputList 遍历完整输入矩阵
                      */
                     var matched: ItemStack? = null
-                    for (input in RecipeType.getRecipeInputList(machine)) {
+                    for (input in getRecipeInputList(machine)) {
                         if (matchesWorkbench(machine, matrix, input, type)) {
-                            matched = RecipeType.getRecipeOutputList(machine, input)
+                            matched = getRecipeOutputList(machine, input)
                             break
                         }
                     }
@@ -197,10 +194,10 @@ class CraftListener : Listener {
                  * 每次准备（预览）都随机给一种真矿石粉。
                  */
                 val effectiveOutput = if (machine is OreWasher
-                    && SlimefunUtils.isItemSimilar(matrix.firstOrNull { it != null }, SlimefunItems.SIFTED_ORE, true)
+                    && isItemSimilar(matrix.firstOrNull { it != null }, SlimefunItems.SIFTED_ORE, true)
                 ) machine.getRandomDust() else output
 
-                val research = SlimefunItem.getByItem(effectiveOutput)?.research
+                val research = getByItem(effectiveOutput)?.research
                 if (research != null && !profile.hasUnlocked(research)) return@toSlimefun
 
                 if (needTimeToCraftTypes.contains(type)) {
@@ -242,21 +239,21 @@ class CraftListener : Listener {
     /*
      * io.github.thebusybiscuit.slimefun4.implementation.listeners.crafting.CraftingTableListener#onPrepareCraft priority = NORMAL
      */
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = HIGH)
     fun onPrepareItemCraft(event: PrepareItemCraftEvent) {
         PrepareItemCraftRunnable(event)
     }
 
-    private inner class CraftItemRunnable(event: CraftItemEvent) : BukkitRunnable() {
+    private inner class CraftItemRunnable(val event: CraftItemEvent) : BukkitRunnable() {
         var output: ItemStack? = null
         var player: Player? = null
         var n: Int? = null
 
         init {
-            craftItem(event)
+            craftItem()
         }
 
-        private fun craftItem(event: CraftItemEvent) {
+        private fun craftItem() {
             val result = event.inventory.result
             if (result != null) {
                 /*
@@ -265,11 +262,11 @@ class CraftListener : Listener {
                  * And if result isn't null
                  * It's crafting with/to slimefun items.
                  */
-                event.result = Result.ALLOW
+                event.result = ALLOW
                 event.isCancelled = false
             }
 
-            val item = SlimefunItem.getByItem(result) ?: return
+            val item = getByItem(result) ?: return
             val opening = playerOpening[event.whoClicked.uniqueId] ?: return
             val machine = opening.first
             val type = multiBlockToRecipeTypeMap[machine::class] ?: return
@@ -277,11 +274,11 @@ class CraftListener : Listener {
             val grid = event.inventory.matrix
             val isShift = event.isShiftClick
             val sifted = machine is OreWasher
-                    && SlimefunUtils.isItemSimilar(grid.firstOrNull { it != null }, SlimefunItems.SIFTED_ORE, true)
+                    && isItemSimilar(grid.firstOrNull { it != null }, SlimefunItems.SIFTED_ORE, true)
 
             val recipeKeyNs = when (val r = event.recipe) {
-                is org.bukkit.inventory.ShapedRecipe -> r.key
-                is org.bukkit.inventory.ShapelessRecipe -> r.key
+                is ShapedRecipe -> r.key
+                is ShapelessRecipe -> r.key
                 else -> null
             }
             val inputMatrix = recipeKeyNs?.let { recipeInputMap[it] }
@@ -297,7 +294,7 @@ class CraftListener : Listener {
                      * 尚未到时间：禁止拿取并提示玩家等待。产物仍显示在合成台，但不会被取走，
                      * 也不会扣减材料（event 已 DENY）。
                      */
-                    event.result = Result.DENY
+                    event.result = DENY
                     event.isCancelled = true
                     player.sendMessage("message.time_to_craft.waiting".translated)
                     return
@@ -309,7 +306,7 @@ class CraftListener : Listener {
                  */
                 if (isShift) {
                     val n = if (inputMatrix != null) craftableCount(inputMatrix, grid) else 1
-                    event.result = Result.DENY
+                    event.result = DENY
                     event.isCancelled = true
                     deductMaterials(inputMatrix, grid, n)
                     /*
@@ -326,9 +323,9 @@ class CraftListener : Listener {
                 return
             }
 
-            if (type == RecipeType.SMELTERY && !isShift) {
+            if (type == SMELTERY && !isShift) {
                 if (!player.smelteryIgniteOnce()) {
-                    event.result = Result.DENY
+                    event.result = DENY
                     event.isCancelled = true
                     player.sendMessage("message.smeltery.need_flint".translated)
                     return
@@ -346,7 +343,7 @@ class CraftListener : Listener {
 
             /*
              * 单格输入机器（amount 可能 >1，如硫酸盐需 16 下界岩）需要按完整配方数扣减。
-             * 不能用 item.recipeType 判断：单格机器的 recipeType 字段恒为 RecipeType.MULTIBLOCK，
+             * 不能用 item.recipeType 判断：单格机器的 recipeType 字段恒为 MULTIBLOCK，
              * 会导致部分产物（如硫酸盐）误判而不扣减，原版只扣 1 个。这里改为依据当前机器
              * 是否属于单格机器类集合来判断（machine 来自 playerOpening，已确定是单格机器）。
              */
@@ -364,7 +361,7 @@ class CraftListener : Listener {
                 val fromMap = inputMatrix
                     ?.firstOrNull {
                         it != null && grid.firstOrNull { m ->
-                            m != null && SlimefunUtils.isItemSimilar(
+                            m != null && isItemSimilar(
                                 m,
                                 it,
                                 false
@@ -372,9 +369,9 @@ class CraftListener : Listener {
                         } != null
                     }
                 val matchedConvert: ItemStack? = fromMap
-                    ?: RecipeType.getRecipeInputs(machine).firstOrNull { c ->
+                    ?: getRecipeInputs(machine).firstOrNull { c ->
                         c != null && grid.firstOrNull {
-                            it != null && SlimefunUtils.isItemSimilar(
+                            it != null && isItemSimilar(
                                 it,
                                 c,
                                 false
@@ -389,7 +386,7 @@ class CraftListener : Listener {
                 val recipeAmount = matchedConvert?.amount ?: return
                 if (recipeAmount < 1) return
                 val inventoryIngredient =
-                    grid.firstOrNull { it != null && SlimefunUtils.isItemSimilar(it, matchedConvert, false) } ?: return
+                    grid.firstOrNull { it != null && isItemSimilar(it, matchedConvert, false) } ?: return
                 inventoryIngredient.amount -= recipeAmount - 1
             }
 
@@ -399,7 +396,7 @@ class CraftListener : Listener {
              * 冶炼炉每次独立 34% 打火石），并从网格扣除 n 份材料。
              */
             if (isShift) {
-                event.result = Result.DENY
+                event.result = DENY
                 event.isCancelled = true
                 if (inputMatrix == null) return
                 val n = craftableCount(inputMatrix, grid)
@@ -412,7 +409,7 @@ class CraftListener : Listener {
                 event.inventory.result = null
                 val baseOutput = result?.clone()?.apply { amount = 1 } ?: return
                 repeat(n) {
-                    if (type == RecipeType.SMELTERY && !player.smelteryIgniteOnce()) {
+                    if (type == SMELTERY && !player.smelteryIgniteOnce()) {
                         player.sendMessage("message.smeltery.need_flint.skipped".translated)
                         return@repeat
                     }
@@ -432,18 +429,15 @@ class CraftListener : Listener {
     /*
      * io.github.thebusybiscuit.slimefun4.implementation.listeners.crafting.CraftingTableListener#onCraft priority = NORMAL
      */
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = HIGH)
     fun onCraftItem(event: CraftItemEvent) {
         CraftItemRunnable(event)
     }
 
-    private inner class PlayerRecipeBookClickRunnable(event: PlayerRecipeBookClickEvent) : BukkitRunnable() {
-        val event: PlayerRecipeBookClickEvent
-
+    private inner class PlayerRecipeBookClickRunnable(val event: PlayerRecipeBookClickEvent) : BukkitRunnable() {
         init {
-            this.event = event
+            playerRecipeBookClick()
         }
-
         private fun playerRecipeBookClick() {
             if (event.isMakeAll) {
                 // Used all items already
@@ -478,7 +472,7 @@ class CraftListener : Listener {
              * 在同产物多配方（如压缩机：煤矿块×8→碳×9 与 煤炭×8→碳×1）时会取错输入的脆弱逻辑。
              */
             val inputMatrix = recipeInputMap[recipeKey] ?: return
-            val result = SlimefunItem.getByItem(Slimevanilla.server.getRecipe(recipeKey)?.result) ?: return
+            val result = getByItem(Slimevanilla.server.getRecipe(recipeKey)?.result) ?: return
             /*
              * 取出该配方需要的材料（类型+数量）
              */

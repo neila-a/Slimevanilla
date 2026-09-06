@@ -1,12 +1,12 @@
 package top.neila.slimevanilla.listeners.addrecipe
 
-import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
+import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType.SMELTERY
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine
-import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
-import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun.getRegistry
+import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems.SALT
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.OreWasher
-import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils
-import org.bukkit.Material
+import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils.isItemSimilar
+import org.bukkit.Material.SAND
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.Recipe
@@ -34,7 +34,7 @@ class AddRecipeRunnable : BukkitRunnable() {
     override fun run() {
         val singleSlotTypes = needToCountRecipeTypes.toSet()
 
-        val machines = Slimefun.getRegistry().enabledSlimefunItems
+        val machines = getRegistry().enabledSlimefunItems
             .filterIsInstance<MultiBlockMachine>()
             .filter { it::class in multiBlockToRecipeTypeMap }
 
@@ -88,7 +88,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                         recipe.safeAdd()
                     }
 
-                    RecipeType.SMELTERY -> {
+                    SMELTERY -> {
                         /*
                          * 熔炉：无序多格，参考 AbstractSmeltery.onInteract，注册为 ShapelessRecipe
                          */
@@ -101,7 +101,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                          */
                         val merged = mutableListOf<ItemStack>()
                         inputMatrix.filterNotNull().forEach { part ->
-                            val existing = merged.firstOrNull { SlimefunUtils.isItemSimilar(it, part, false) }
+                            val existing = merged.firstOrNull { isItemSimilar(it, part, false) }
                             if (existing != null) existing.amount += part.amount
                             else merged += part.clone()
                         }
@@ -133,20 +133,20 @@ class AddRecipeRunnable : BukkitRunnable() {
                  * 为还原「随机消耗 1 或 2 个沙子」特性，额外注册一条 SAND×2→SALT 配方，
                  * 使玩家放 1 沙或 2 沙都能合成盐，且两条输入原料都是沙子（group 相同）。
                  */
-                if (machine is OreWasher && SlimefunUtils.isItemSimilar(effectiveOutput, SlimefunItems.SALT, true)) {
+                if (machine is OreWasher && isItemSimilar(effectiveOutput, SALT, true)) {
                     val altKey = NamespacedKey(Slimevanilla, "${key.key}_alt")
                     val altRecipe = ShapelessRecipe(altKey, effectiveOutput)
-                    altRecipe.addIngredient(Material.SAND)
-                    altRecipe.addIngredient(Material.SAND)
+                    altRecipe.addIngredient(SAND)
+                    altRecipe.addIngredient(SAND)
                     altRecipe.category = effectiveOutput.bookCategory
                     altRecipe.group = recipeGroup(
                         machine,
-                        arrayOf(ItemStack(Material.SAND), null, null, null, null, null, null, null, null),
+                        arrayOf(ItemStack(SAND), null, null, null, null, null, null, null, null),
                         type
                     )
                     if (altRecipe.safeAdd()) {
                         recipeInputMap[altKey] = arrayOf(
-                            ItemStack(Material.SAND).apply { amount = 2 },
+                            ItemStack(SAND).apply { amount = 2 },
                             null,
                             null,
                             null,
