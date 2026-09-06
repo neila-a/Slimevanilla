@@ -7,9 +7,11 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority.*
 import org.bukkit.event.Listener
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem.getByItem
+import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.CraftItemEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
+import org.bukkit.inventory.MenuType.CRAFTING
 import top.neila.slimevanilla.core.Slimevanilla
 import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
 import top.neila.slimevanilla.defines.recipetypes.multiBlockToRecipeTypeMap
@@ -63,18 +65,20 @@ class CraftListener : Listener {
                         val outputItem = getByItem(output)
                         val research = outputItem?.research
                         if (research == null || profile.hasUnlocked(research)) {
-                            add(item recipeKeyAt  i)
+                            add(item recipeKeyAt i)
                         }
                     }
                 })
 
-                val view = player.openWorkbench(event.clickedBlock.location, true)
                 val titleKey = "container.${multiBlockTitleKeyMap[item::class]}.title"
                 val title = titleKey.translated
-                if (title != titleKey)
-                    view?.title = title
-                if (view != null)
-                    player.open(item, view)
+
+                val view = CRAFTING.builder()
+                    .title(Component.text(title))
+                    .checkReachable(false)
+                    .location(event.clickedBlock.location)
+                    .build(player)
+                player.open(item, view)
             }
         }
     }

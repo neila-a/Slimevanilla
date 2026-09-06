@@ -4,4 +4,7 @@ import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine
 import org.bukkit.entity.HumanEntity
 import org.bukkit.inventory.InventoryView
 
-fun HumanEntity.open(machine: MultiBlockMachine, view: InventoryView) = playerOpening.set(uniqueId, machine to view)
+fun HumanEntity.open(machine: MultiBlockMachine, view: InventoryView) {
+    view.open()
+    playerOpening[uniqueId] = machine to view
+}
