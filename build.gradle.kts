@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version libs.versions.kotlin.get()
     alias(libs.plugins.shadow)
     alias(libs.plugins.run.paper)
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.22"
 }
 
 repositories {
@@ -35,7 +36,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly(libs.paper.api)
+    paperweight.paperDevBundle("26.2.build.+")
     compileOnly(libs.slimefun)
 
     implementation(libs.kotlin.stdlib)

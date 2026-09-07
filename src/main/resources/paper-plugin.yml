@@ -5,6 +5,7 @@ api-version: "26.2"
 load: POSTWORLD
 
 main: top.neila.slimevanilla.core.Slimevanilla
+bootstrap: top.neila.slimevanilla.core.SlimevanillaBootstrap
 name: Slimevanilla
 author: Neila
 
