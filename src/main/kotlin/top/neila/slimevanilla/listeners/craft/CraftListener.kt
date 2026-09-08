@@ -12,7 +12,7 @@ import org.bukkit.event.inventory.CraftItemEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.inventory.MenuType.CRAFTING
-import top.neila.slimevanilla.core.Slimevanilla
+import org.bukkit.plugin.java.JavaPlugin
 import top.neila.slimevanilla.defines.multiBlockTitleKeyMap
 import top.neila.slimevanilla.defines.recipetypes.multiBlockToRecipeTypeMap
 import top.neila.slimevanilla.listeners.craft.playerdata.opening.close
@@ -27,9 +27,9 @@ import top.neila.slimevanilla.listeners.craft.runnables.prepareitemcraft.Prepare
 import top.neila.slimevanilla.listeners.recipeKeyAt
 import top.neila.slimevanilla.listeners.recipeList
 
-class CraftListener : Listener {
+class CraftListener(private val plugin: JavaPlugin) : Listener {
     init {
-        Slimevanilla.server.pluginManager.registerEvents(this, Slimevanilla)
+        plugin.server.pluginManager.registerEvents(this, plugin)
     }
 
     @EventHandler(priority = LOW)

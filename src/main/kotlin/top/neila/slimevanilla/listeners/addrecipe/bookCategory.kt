@@ -17,7 +17,7 @@ val ItemStack.bookCategory
         return when (groupKey) {
             "weapons", "tools", "armor", "magical_armor", "equipment" -> EQUIPMENT
             "electricity", "androids", "cargo", "gps", "technical" -> REDSTONE
-            "resources", "misc", "food", "materials" -> BUILDING
+            "resources", "misc", "food", "materials", "ores" -> BUILDING
             else -> MISC
         }
     }

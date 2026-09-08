@@ -14,7 +14,7 @@ import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils.isItemSimilar
 import org.bukkit.inventory.*
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType.*
 import org.bukkit.Sound.BLOCK_ANVIL_USE
-import top.neila.slimevanilla.core.Slimevanilla
+import top.neila.slimevanilla.core.pluginInstance
 import top.neila.slimevanilla.defines.recipetypes.lists.needTimeToCraftTypes
 import top.neila.slimevanilla.defines.recipetypes.lists.needToCountRecipeTypes
 import top.neila.slimevanilla.listeners.addrecipe.recipeInputMap
@@ -96,7 +96,7 @@ class CraftItemRunnable(val event: CraftItemEvent) : BukkitRunnable() {
                 this.output = output
                 this.player = player
                 this.n = n
-                runTaskLater(Slimevanilla, 0L)
+                runTaskLater(pluginInstance, 0L)
             }
             return
         }

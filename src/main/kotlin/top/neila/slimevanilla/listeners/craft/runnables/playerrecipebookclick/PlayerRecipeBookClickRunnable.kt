@@ -2,7 +2,7 @@ package top.neila.slimevanilla.listeners.craft.runnables.playerrecipebookclick
 
 import com.destroystokyo.paper.event.player.PlayerRecipeBookClickEvent
 import org.bukkit.scheduler.BukkitRunnable
-import top.neila.slimevanilla.core.Slimevanilla
+import top.neila.slimevanilla.core.pluginInstance
 import top.neila.slimevanilla.defines.recipetypes.lists.needToCountRecipeTypes
 import top.neila.slimevanilla.defines.recipetypes.multiBlockToRecipeTypeMap
 import top.neila.slimevanilla.listeners.addrecipe.recipeInputMap
@@ -34,7 +34,7 @@ class PlayerRecipeBookClickRunnable(val event: PlayerRecipeBookClickEvent) : Buk
          * 数量匹配由 onPrepareItemCraft / onCraftItem 处理，此处无需补格。
          */
         if (isSingleSlot) {
-            runTask(Slimevanilla)
+            runTask(pluginInstance)
         }
     }
 
@@ -51,7 +51,7 @@ class PlayerRecipeBookClickRunnable(val event: PlayerRecipeBookClickEvent) : Buk
          * 在同产物多配方（如压缩机：煤矿块×8→碳×9 与 煤炭×8→碳×1）时会取错输入的脆弱逻辑。
          */
         val inputMatrix = recipeInputMap[recipeKey] ?: return
-        val result = getByItem(Slimevanilla.server.getRecipe(recipeKey)?.result) ?: return
+        val result = getByItem(pluginInstance.server.getRecipe(recipeKey)?.result) ?: return
         /*
          * 取出该配方需要的材料（类型+数量）
          */

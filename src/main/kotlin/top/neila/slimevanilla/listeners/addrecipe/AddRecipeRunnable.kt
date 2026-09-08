@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ShapedRecipe
 import org.bukkit.inventory.ShapelessRecipe
+import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 import top.neila.slimevanilla.core.Slimevanilla
 import top.neila.slimevanilla.defines.recipetypes.lists.needToCountRecipeTypes
@@ -26,13 +27,14 @@ import top.neila.slimevanilla.listeners.recipeList
  */
 val recipeInputMap = mutableMapOf<NamespacedKey, Array<ItemStack?>>()
 
-class AddRecipeRunnable : BukkitRunnable() {
+class AddRecipeRunnable(private val plugin: JavaPlugin) : BukkitRunnable() {
     init {
-        runTask(Slimevanilla)    
+        runTask(plugin)
     }
     
     override fun run() {
         val singleSlotTypes = needToCountRecipeTypes.toSet()
+        var registered = 0
 
         val machines = getRegistry().enabledSlimefunItems
             .filterIsInstance<MultiBlockMachine>()
@@ -85,7 +87,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                         recipe.setIngredient('A', input)
                         recipe.category = effectiveOutput.bookCategory
                         recipe.group = recipeGroup(machine, inputMatrix, type)
-                        recipe.safeAdd()
+                        if (recipe.safeAdd()) registered++
                     }
 
                     SMELTERY -> {
@@ -108,7 +110,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                         merged.forEach { recipe.addIngredient(it) }
                         recipe.category = effectiveOutput.bookCategory
                         recipe.group = recipeGroup(machine, inputMatrix, type)
-                        recipe.safeAdd()
+                        if (recipe.safeAdd()) registered++
                     }
 
                     else -> {
@@ -119,7 +121,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                         val recipe = ShapedRecipeBuilder(key, effectiveOutput, inputMatrix)
                         recipe.category = effectiveOutput.bookCategory
                         recipe.group = recipeGroup(machine, inputMatrix, type)
-                        recipe.safeAdd()
+                        if (recipe.safeAdd()) registered++
                     }
                 }
                 /*
@@ -134,7 +136,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                  * 使玩家放 1 沙或 2 沙都能合成盐，且两条输入原料都是沙子（group 相同）。
                  */
                 if (machine is OreWasher && isItemSimilar(effectiveOutput, SALT, true)) {
-                    val altKey = NamespacedKey(Slimevanilla, "${key.key}_alt")
+                    val altKey = NamespacedKey(plugin, "${key.key}_alt")
                     val altRecipe = ShapelessRecipe(altKey, effectiveOutput)
                     altRecipe.addIngredient(SAND)
                     altRecipe.addIngredient(SAND)
@@ -145,6 +147,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                         type
                     )
                     if (altRecipe.safeAdd()) {
+                        registered++
                         recipeInputMap[altKey] = arrayOf(
                             ItemStack(SAND).apply { amount = 2 },
                             null,
@@ -160,5 +163,7 @@ class AddRecipeRunnable : BukkitRunnable() {
                 }
             }
         }
+
+        plugin.logger.info("已将 Slimefun 机器的配方注册为 $registered 条原版配方")
     }
 }

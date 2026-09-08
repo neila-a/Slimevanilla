@@ -17,7 +17,7 @@ import top.neila.slimevanilla.listeners.craft.toSlimefun
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType.*
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.OreWasher
 import org.bukkit.entity.Player
-import top.neila.slimevanilla.core.Slimevanilla
+import top.neila.slimevanilla.core.pluginInstance
 import top.neila.slimevanilla.defines.recipetypes.lists.needTimeToCraftTypes
 import top.neila.slimevanilla.listeners.craft.playerdata.timetocraft.isTimeToCrafting
 import top.neila.slimevanilla.listeners.craft.playerdata.timetocraft.pendTimeToCraftTask
@@ -109,7 +109,7 @@ class PrepareItemCraftRunnable(
                  * 到点（约 3 秒）后解除禁止，玩家才可真正拿取。
                  */
                 inventory.result = effectiveOutput
-                player pendTimeToCraftTask  runTaskLater(Slimevanilla, 60L)
+                player pendTimeToCraftTask  runTaskLater(pluginInstance, 60L)
             } else {
                 inventory.result = effectiveOutput
             }

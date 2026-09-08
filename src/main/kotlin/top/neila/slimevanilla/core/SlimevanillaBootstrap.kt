@@ -6,6 +6,7 @@ import io.papermc.paper.plugin.bootstrap.PluginProviderContext
 
 class SlimevanillaBootstrap : PluginBootstrap {
     override fun bootstrap(context: BootstrapContext) {
+        //context.lifecycleManager.registerEventHandler()
     }
 
     override fun createPlugin(context: PluginProviderContext) = Slimevanilla
