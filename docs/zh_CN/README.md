@@ -1,6 +1,7 @@
 # Slimevanilla
 
-[![Hangar](https://api.mcbanners.com/banner/resource/hangar/Slimevanilla/banner.png?background__template=MALACHITE_GREEN)](https://hangar.papermc.io/Neila/Slimevanilla)
+[![Hangar](https://api.mcbanners.com/banner/resource/hangar/Slimevanilla/banner.png?background__template=MALACHITE_GREEN)](https://hangar.papermc.io/Neila/Slimevanilla)  
+[鬼斩资源站](https://resources.guizhanss.com/plugin/slimevanilla)
 
 [English](/docs/en_US/README.md) | 大陆简体中文
 
